@@ -77,7 +77,6 @@ public class ClienteDAOJDBCTemplateImpl implements ClienteDAO {
                                                                 .nombre(rs.getString("nombre"))
                                                                 .apellido1(rs.getString("apellido1"))
                                                                 .apellido2(rs.getString("apellido2"))
-                                                                .apellido2(rs.getString("apellido2"))
                                                                 .categoría(rs.getInt("categoría"))
                                                                 .ciudad(rs.getString("ciudad"))
                                                                 .build();
@@ -119,7 +118,6 @@ public class ClienteDAOJDBCTemplateImpl implements ClienteDAO {
                         .id(rs.getInt("id"))
                         .nombre(rs.getString("nombre"))
                         .apellido1(rs.getString("apellido1"))
-                        .apellido2(rs.getString("apellido2"))
                         .apellido2(rs.getString("apellido2"))
                         .categoría(rs.getInt("categoría"))
                         .ciudad(rs.getString("ciudad"))

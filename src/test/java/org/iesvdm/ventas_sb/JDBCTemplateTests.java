@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.iesvdm.ventas_sb.modelo.Cliente;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,7 @@ public class JDBCTemplateTests {
 			.build();
 
 
+	@Order(1)
 	@Test
     void insertWithoutIDRecoveryTest() {
 
@@ -76,10 +78,11 @@ public class JDBCTemplateTests {
         log.info("{} inserted records.", rows);
 
 		assertEquals(1, rows);
-		assertTrue(cli2.getId() > 0);
+		assertTrue(cli2.getId() == null);
 
     }
 
+	@Order(2)
 	@Test
 	void insertWithIDRecoveryTest() {
 
@@ -193,7 +196,6 @@ END;
 		assertEquals(1, rows);
 	}
 
-
 	@Test
 	void delete() {
 
@@ -208,7 +210,6 @@ END;
 		assertEquals(1, rows);
 
 	}
-
 
 	@Test
 	void batch() {
@@ -297,42 +298,108 @@ END;
 	//A realizar por el alumno...
 	@Test
 	void findByNombre() {
-		String nombre = "";
-		//TODO
+
+		String nombre = "Adela";
+
+		Optional<Cliente> optCli = jdbcTemplate.query("""
+				SELECT * FROM cliente WHERE nombre = ?
+				""", rs -> {
+
+			if (rs.next()) {
+				return Optional.of(UtilDAO.buildCliente(rs));
+			} else {
+				return Optional.empty();
+			}
+
+		}, nombre);
+
+		assertTrue(optCli.isPresent());
+		assertEquals(nombre, optCli.get().getNombre());
 	}
 
 	@Test
 	void findByNombreButNotFound() {
-		String nombre = "";
-		//TODO
+		String nombre = "Gregorio";
+		Optional<Cliente> optCli = jdbcTemplate.query("""
+				SELECT * FROM cliente WHERE nombre = ?
+				""", rs -> {
+
+			if (rs.next()) {
+				return Optional.of(UtilDAO.buildCliente(rs));
+			} else {
+				return Optional.empty();
+			}
+
+		}, nombre);
+
+		assertTrue(optCli.isEmpty());
 	}
 
 	@Test
-	void findClienteByCaracteristicaBetween() {
-		int característicaInit = 0;
-		int característicaFin = 0;
-		//TODO
+	void findClienteByCategoriaBetween() {
+		int categoriaInit = 100;
+		int categoriaFin = 200;
+
+		List<Cliente> listCli = jdbcTemplate.query("""
+				SELECT * FROM cliente WHERE categoría BETWEEN ? AND ?
+				""",
+				BeanPropertyRowMapper.newInstance(Cliente.class),
+				categoriaInit,
+				categoriaFin
+		);
+
+		listCli.forEach(System.out::println);
+
+		assertEquals(6,listCli.size());
 	}
 
+	@Test
 	void findClienteByNombreContainingAndApellido1Containing() {
-		String nombreContaining = "";
-		String apellido1Containing = "";
-		//TODO
+		String nombreContaining = "Adela";
+		String apellido1Containing = "%Salas%";
 
+		List<Cliente> listCli = jdbcTemplate.query("""
+				SELECT * FROM cliente c 
+         		WHERE lower(c.nombre) LIKE lower(?)
+				AND lower(c.apellido1) like lower(?)
+				""",
+				BeanPropertyRowMapper.newInstance(Cliente.class),
+				nombreContaining,
+				apellido1Containing
+		);
 
+		assertEquals(listCli.size(),1);
 	}
 
+	@Test
 	void findClienteByNombreContainingAndApellido1ContainingButNotFound() {
-		String nombreContaining = "";
-		String apellido1Containing = "";
-		//TODO
+		String nombreContaining = "No existe";
+		String apellido1Containing = "No existe";
 
+		List<Cliente> listCli = jdbcTemplate.query("""
+				SELECT * FROM cliente c 
+         		WHERE lower(c.nombre) LIKE lower(?)
+				AND lower(c.apellido1) like lower(?)
+				""",
+				BeanPropertyRowMapper.newInstance(Cliente.class),
+				nombreContaining,
+				apellido1Containing
+		);
 
+		assertEquals(listCli.size(),0);
 	}
 
+	@Test
 	void findPedidosWithClienteAndComercialByCliente_id() {
 		int clienteId = 0;
-		//TODO
+
+		List<Cliente> listCli = jdbcTemplate.query("""
+				SELECT * FROM cliente c JOIN pedido p ON p.id_cliente = c.id
+				""",
+				BeanPropertyRowMapper.newInstance(Cliente.class),
+				clienteId
+		);
+		System.out.println(listCli);
 	}
 
 	void insertNewClienteAndPedido() {
